@@ -84,7 +84,7 @@ export default function Instructions() {
           <div className="text-sm text-right"></div>
         </div>
 
-        <div className="bg-orange-500 text-white text-lg font-bold py-2 px-4 mt-6 rounded-md">
+        <div className="bg-gray-500 text-white text-lg font-bold py-2 px-4 mt-6 rounded-md">
           GENERAL INSTRUCTIONS
         </div>
 

@@ -37,7 +37,9 @@ export default function MCQPage() {
   const router = useRouter();
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const [isTimeUp, setIsTimeUp] = useState(false);
-
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [cameraAllowed, setCameraAllowed] = useState<boolean | null>(null);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   useEffect(() => {
     if (typeof window !== "undefined") {
       const isCheck = localStorage.getItem("check");
@@ -55,6 +57,29 @@ export default function MCQPage() {
       }
     }
   }, []);
+
+  const requestCameraAccess = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+
+      setCameraStream(stream); // ✅ Save the stream
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current?.play().catch((err) => {
+            console.error("Play error:", err);
+          });
+        };
+      }
+
+      setCameraAllowed(true);
+    } catch (error) {
+      console.error("Camera access denied", error);
+      setCameraAllowed(false);
+    }
+  };
 
   useEffect(() => {
     const fetchAssignmentAndQuestions = async () => {
@@ -85,6 +110,7 @@ export default function MCQPage() {
     };
 
     fetchAssignmentAndQuestions();
+    requestCameraAccess();
   }, []);
 
   useEffect(() => {
@@ -182,6 +208,12 @@ export default function MCQPage() {
 
   const handleSubmit = () => {
     setSubmitting(true);
+
+    // ✅ Stop video tracks
+    if (cameraStream) {
+      cameraStream.getTracks().forEach((track) => track.stop());
+    }
+
     setTimeout(() => {
       localStorage.removeItem("check");
       router.push("/submitted");
@@ -192,19 +224,33 @@ export default function MCQPage() {
 
   if (loading) return <div className="p-6 text-center">Loading...</div>;
 
+  if (cameraAllowed === false) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-red-50 text-center p-6">
+        <div>
+          <h1 className="text-2xl font-bold text-red-600 mb-2">
+            Camera Access Required
+          </h1>
+          <p className="text-gray-700">
+            Please allow camera access to proceed with the exam.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 font-sans text-gray-800 flex flex-col">
       {/* Header */}
-      <header className="bg-orange-500 text-white py-4 px-4 sm:px-6 md:px-8 shadow-md">
+      <header className="bg-gray-800 text-white py-4 px-4 sm:px-6 md:px-8 shadow-md">
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
             {assData?.logo ? (
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-emerald-600 rounded-full overflow-hidden flex items-center justify-center">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full overflow-hidden flex items-center justify-center">
                 <img
-                  src={assData?.logo}
+                  src={assData.logo}
                   alt="Logo"
                   className="w-full h-full object-cover"
-                  onError={() => console.error("Error loading logo")}
                 />
               </div>
             ) : (
@@ -216,25 +262,38 @@ export default function MCQPage() {
             )}
             <div>
               <h1 className="text-lg font-bold text-white truncate">
-                {assData?.companyName
-                  ? assData.companyName
-                  : "[CONDUCTOR INSTITUTE]"}
+                {assData?.companyName || "[CONDUCTOR INSTITUTE]"}
               </h1>
               <p className="text-white font-semibold text-sm -mt-1">
                 Excellence in Assessment
               </p>
             </div>
           </div>
-          <div className="text-sm md:text-base text-right">
-            <div>
-              Candidate Name:{" "}
-              <span className="font-semibold">
-                {user?.name || "[Your Name]"}
-              </span>
+
+          {/* Camera feed and user info */}
+          <div className="flex items-center gap-4">
+            <div className="w-15 h-15 bg-black rounded-md overflow-hidden border border-white">
+              <video
+                ref={videoRef}
+                className="w-full h-full object-cover"
+                autoPlay
+                muted
+                playsInline
+              />
             </div>
-            <div>
-              Remaining Time:{" "}
-              <span className="text-yellow-300 font-bold">{formatTime()}</span>
+            <div className="text-sm md:text-base text-right">
+              <div>
+                Candidate Name:{" "}
+                <span className="font-semibold">
+                  {user?.name || "[Your Name]"}
+                </span>
+              </div>
+              <div>
+                Remaining Time:{" "}
+                <span className="text-yellow-300 font-bold">
+                  {formatTime()}
+                </span>
+              </div>
             </div>
           </div>
         </div>

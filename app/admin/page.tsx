@@ -52,7 +52,6 @@ export default function AdminDashboard() {
                     console.warn('No assessments found.');
                 }
             } catch (error) {
-                console.log('Failed to fetch assessments:', error);
                 alert('An error occurred while fetching assessments. Please try again later.');
             } finally {
                 setLoading(false);
