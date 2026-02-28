@@ -2,6 +2,8 @@ import { connectDB } from "@/lib/db";
 import Assignment from "@/models/Assignment";
 import { User } from "@/models/User";
 import { NextResponse } from "next/server";
+import mongoose from "mongoose";
+import Question from "@/models/Question";
 
 export async function POST(req: Request) {
   try {
@@ -17,18 +19,17 @@ export async function POST(req: Request) {
     ) {
       return NextResponse.json(
         { error: "Invalid questions format" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    // Convert user emails to User ObjectIds
     if (
       !Array.isArray(data.users) ||
       !data.users.every((email: any) => typeof email === "string")
     ) {
       return NextResponse.json(
         { error: "Invalid users format" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -37,7 +38,7 @@ export async function POST(req: Request) {
     if (userDocs.length !== data.users.length) {
       return NextResponse.json(
         { error: "One or more user emails not found" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -60,15 +61,21 @@ export async function POST(req: Request) {
     console.log("Error creating assignment:", err);
     return NextResponse.json(
       { error: "Failed to create assignment", details: err.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function GET() {
   await connectDB();
-  const assignments = await Assignment.find().populate("questionIds");
-  console.log("assignments", assignments);
+
+  if (!mongoose.models.Question) {
+    require("@/models/Question");
+  }
+
+  const assignments = await Assignment.find()
+    .populate("questionIds")
+    .populate("users");
 
   return NextResponse.json(assignments);
 }

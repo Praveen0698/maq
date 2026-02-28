@@ -1,11 +1,29 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const MONGODB_URI = process.env.NEXT_PUBLIC_MONGODB_URI as string;
 
-if (!MONGODB_URI) throw new Error("Please add your Mongo URI to .env.local");
+if (!MONGODB_URI) {
+  throw new Error("Please add your Mongo URI to .env.local");
+}
+
+let cached = (global as any).mongoose;
+
+if (!cached) {
+  cached = (global as any).mongoose = {
+    conn: null,
+    promise: null,
+  };
+}
 
 export async function connectDB() {
-    if (mongoose.connections[0].readyState) return;
+  if (cached.conn) return cached.conn;
 
-    await mongoose.connect(MONGODB_URI);
+  if (!cached.promise) {
+    cached.promise = mongoose.connect(MONGODB_URI, {
+      bufferCommands: false,
+    });
+  }
+
+  cached.conn = await cached.promise;
+  return cached.conn;
 }

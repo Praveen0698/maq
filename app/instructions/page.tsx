@@ -55,35 +55,44 @@ export default function Instructions() {
         <title>General Instructions - {companyName || "NTA"}</title>
       </Head>
 
-      <div className="mx-auto px-4 sm:px-6 lg:px-8 overflow-x-hidden">
-        <div className="flex justify-between items-center py-4 border-b">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-600 rounded-full overflow-hidden flex items-center justify-center">
-              {assData?.logo ? (
+      <header className="bg-white/70 backdrop-blur-md shadow-sm py-4 px-6">
+        <div className="mx-auto flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            {assData?.logo ? (
+              <div className="w-12 h-12 bg-white rounded-full shadow-md overflow-hidden flex items-center justify-center border">
                 <img
-                  src={assData?.logo}
+                  src={assData.logo}
                   alt="Logo"
                   className="w-full h-full object-cover"
-                  onError={() => console.error("Error loading logo")}
                 />
-              ) : (
-                <span className="text-white font-bold text-lg sm:text-xl">
-                  ?
-                </span>
-              )}
-            </div>
+              </div>
+            ) : (
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center shadow">
+                <span className="text-blue-700 font-bold text-xl">?</span>
+              </div>
+            )}
+
             <div>
-              <h1 className="text-xl font-bold text-blue-900 truncate">
-                {companyName ? companyName : "[CONDUCTOR INSTITUTE]"}
+              <h1 className="text-xl font-bold text-blue-700">
+                {companyName || "Online Examination Portal"}
               </h1>
-              <p className="text-green-600 font-semibold text-sm sm:text-base -mt-1">
-                Excellence in Assessment
+              <p className="text-sm text-gray-500">
+                Computer Based Test (CBT) System
               </p>
             </div>
           </div>
-          <div className="text-sm text-right"></div>
-        </div>
 
+          <div className="hidden sm:block text-right">
+            <p className="text-sm text-gray-600 font-medium">
+              Candidate Dashboard
+            </p>
+            <p className="text-xs text-gray-400">
+              Secure Examination Environment
+            </p>
+          </div>
+        </div>
+      </header>
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 overflow-x-hidden">
         <div className="bg-gray-500 text-white text-lg font-bold py-2 px-4 mt-6 rounded-md">
           GENERAL INSTRUCTIONS
         </div>
@@ -96,6 +105,12 @@ export default function Instructions() {
           <div className="mb-6">
             <p className="font-bold">General Instructions:</p>
             <ol className="list-decimal pl-5">
+              <li>
+                Candidates are strictly prohibited from navigating away from the
+                examination window. Any attempt to refresh, close, switch tabs,
+                minimize the window, or use the browser back button will result
+                in automatic submission of the test.
+              </li>
               <li>
                 The clock will be set at the server. The countdown timer in the
                 top right corner will show remaining time.
@@ -164,9 +179,9 @@ export default function Instructions() {
           <div className="flex justify-center mt-8">
             <button
               onClick={handleProceed}
-              className="bg-blue-600 text-white px-8 py-3 rounded font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full cursor-pointer sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold text-lg px-10 py-3 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              PROCEED
+              Proceed to Declaration
             </button>
           </div>
         </div>

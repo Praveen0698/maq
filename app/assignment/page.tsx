@@ -25,6 +25,15 @@ type Question = {
   options: Option[];
 };
 
+const shuffleArray = (array: Question[]) => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
 export default function MCQPage() {
   const [currentQuestion, setCurrentQuestion] = useState<number>(1);
   const [responses, setResponses] = useState<Responses>({});
@@ -40,6 +49,7 @@ export default function MCQPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [cameraAllowed, setCameraAllowed] = useState<boolean | null>(null);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       const isCheck = localStorage.getItem("check");
@@ -48,6 +58,14 @@ export default function MCQPage() {
       }
     }
   }, [router]);
+
+  useEffect(() => {
+    return () => {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, [cameraStream]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -61,19 +79,7 @@ export default function MCQPage() {
   const requestCameraAccess = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-
-      setCameraStream(stream); // ✅ Save the stream
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-
-        videoRef.current.onloadedmetadata = () => {
-          videoRef.current?.play().catch((err) => {
-            console.error("Play error:", err);
-          });
-        };
-      }
-
+      setCameraStream(stream);
       setCameraAllowed(true);
     } catch (error) {
       console.error("Camera access denied", error);
@@ -82,28 +88,112 @@ export default function MCQPage() {
   };
 
   useEffect(() => {
+    const handleBackButton = () => {
+      handleSubmit();
+    };
+
+    window.history.pushState(null, "", window.location.href);
+
+    const onPopState = () => {
+      handleBackButton();
+    };
+
+    window.addEventListener("popstate", onPopState);
+
+    return () => {
+      window.removeEventListener("popstate", onPopState);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = ""; // Required for Chrome
+      handleSubmit();
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [cameraStream, assData]);
+
+  useEffect(() => {
+    if (videoRef.current && cameraStream) {
+      videoRef.current.srcObject = cameraStream;
+
+      videoRef.current.onloadedmetadata = async () => {
+        try {
+          await videoRef.current?.play();
+        } catch (err) {
+          console.error("Video play error:", err);
+        }
+      };
+    }
+  }, [cameraStream]);
+
+  useEffect(() => {
     const fetchAssignmentAndQuestions = async () => {
       try {
         const assignmentRes = await axios.get("/api/admin/assignments/latest");
+
         setAssData(assignmentRes.data);
         const questionIds = assignmentRes.data.questionIds;
 
         const questionsRes = await axios.post(
           "/api/admin/questions/ass-questions",
-          { ids: questionIds }
+          { ids: questionIds },
         );
-        const fetchedQuestions = questionsRes.data.map((q: any) => ({
-          id: q._id,
-          question: q.text,
-          image: q.image,
-          options: q.options.map((opt: any) => ({
-            text: opt.text,
-            image: opt.image,
-          })),
-        }));
-        setQuestions(fetchedQuestions);
+
+        const fetchedQuestions: Question[] = questionsRes.data.map(
+          (q: any) => ({
+            id: q._id,
+            question: q.text,
+            image: q.image,
+            options: q.options.map((opt: any) => ({
+              text: opt.text,
+              image: opt.image,
+            })),
+          }),
+        );
+
+        if (!fetchedQuestions.length) {
+          router.push("/");
+          return;
+        }
+
+        let finalQuestions: Question[] = [];
+        const storageKey = `selectedQuestions_${assignmentRes.data._id}`;
+
+        if (fetchedQuestions.length <= 100) {
+          finalQuestions = fetchedQuestions;
+        } else {
+          const stored = sessionStorage.getItem(storageKey);
+
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            if (parsed.length === 100) {
+              finalQuestions = parsed;
+            } else {
+              const shuffled = shuffleArray(fetchedQuestions);
+              finalQuestions = shuffled.slice(0, 100);
+              sessionStorage.setItem(
+                storageKey,
+                JSON.stringify(finalQuestions),
+              );
+            }
+          } else {
+            const shuffled = shuffleArray(fetchedQuestions);
+            finalQuestions = shuffled.slice(0, 100);
+            sessionStorage.setItem(storageKey, JSON.stringify(finalQuestions));
+          }
+        }
+
+        setQuestions(finalQuestions);
+        setCurrentQuestion(1);
       } catch (error) {
-        console.log("Error fetching assignment/questions", error);
+        console.log("Error fetching questions", error);
       } finally {
         setLoading(false);
       }
@@ -111,7 +201,7 @@ export default function MCQPage() {
 
     fetchAssignmentAndQuestions();
     requestCameraAccess();
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     if (!assData?.durationMinutes) return;
@@ -133,7 +223,7 @@ export default function MCQPage() {
       const currentTime = Date.now();
       const timeRemaining = Math.max(
         0,
-        Math.floor((endTime - currentTime) / 1000)
+        Math.floor((endTime - currentTime) / 1000),
       );
 
       setTimeLeft(timeRemaining);
@@ -207,17 +297,23 @@ export default function MCQPage() {
   };
 
   const handleSubmit = () => {
+    if (submitting) return;
+
     setSubmitting(true);
 
-    // ✅ Stop video tracks
+    sessionStorage.removeItem("examEndTime");
+
+    if (assData?._id) {
+      sessionStorage.removeItem(`selectedQuestions_${assData._id}`);
+    }
+
     if (cameraStream) {
       cameraStream.getTracks().forEach((track) => track.stop());
     }
 
-    setTimeout(() => {
-      localStorage.removeItem("check");
-      router.push("/submitted");
-    }, 300);
+    localStorage.removeItem("check");
+
+    router.replace("/submitted");
   };
 
   const current = questions[currentQuestion - 1];
@@ -241,12 +337,11 @@ export default function MCQPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 font-sans text-gray-800 flex flex-col">
-      {/* Header */}
-      <header className="bg-gray-800 text-white py-4 px-4 sm:px-6 md:px-8 shadow-md">
-        <div className="container mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-3">
+      <header className="bg-white/70 backdrop-blur-md shadow-sm py-4 px-6">
+        <div className="mx-auto flex justify-between items-center">
+          <div className="flex items-center gap-4">
             {assData?.logo ? (
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full overflow-hidden flex items-center justify-center">
+              <div className="w-12 h-12 bg-white rounded-full shadow-md overflow-hidden flex items-center justify-center border">
                 <img
                   src={assData.logo}
                   alt="Logo"
@@ -254,25 +349,23 @@ export default function MCQPage() {
                 />
               </div>
             ) : (
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-300 rounded-full flex items-center justify-center">
-                <span className="text-gray-600 font-bold text-lg sm:text-xl">
-                  ?
-                </span>
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center shadow">
+                <span className="text-blue-700 font-bold text-xl">?</span>
               </div>
             )}
+
             <div>
-              <h1 className="text-lg font-bold text-white truncate">
-                {assData?.companyName || "[CONDUCTOR INSTITUTE]"}
+              <h1 className="text-xl font-bold text-blue-700">
+                {assData?.companyName || "Online Examination Portal"}
               </h1>
-              <p className="text-white font-semibold text-sm -mt-1">
-                Excellence in Assessment
+              <p className="text-sm text-gray-500">
+                Computer Based Test (CBT) System
               </p>
             </div>
           </div>
 
-          {/* Camera feed and user info */}
           <div className="flex items-center gap-4">
-            <div className="w-15 h-15 bg-black rounded-md overflow-hidden border border-white">
+            <div className="w-[60px] h-[60px] bg-black rounded-md overflow-hidden border border-white">
               <video
                 ref={videoRef}
                 className="w-full h-full object-cover"
@@ -281,7 +374,7 @@ export default function MCQPage() {
                 playsInline
               />
             </div>
-            <div className="text-sm md:text-base text-right">
+            <div className="text-sm md:text-base text-right pr-5">
               <div>
                 Candidate Name:{" "}
                 <span className="font-semibold">
@@ -430,7 +523,7 @@ export default function MCQPage() {
                   key={i + 1}
                   onClick={() => goToQuestion(i + 1)}
                   className={`text-sm cursor-pointer w-8 h-8 sm:w-10 sm:h-10 border text-white rounded-sm flex items-center justify-center ${renderStatusColor(
-                    i + 1
+                    i + 1,
                   )}`}
                 >
                   {String(i + 1).padStart(2, "0")}
@@ -448,8 +541,8 @@ export default function MCQPage() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-white border-t shadow-sm py-4 px-4 sm:px-6 md:px-8 text-center text-xs text-gray-500">
-        <div className="container mx-auto">© 2025 {assData?.companyName}</div>
+      <footer className="bg-white shadow-sm py-4 px-4 sm:px-6 md:px-8 text-center text-xs text-gray-500">
+        <div className="container mx-auto">© 2026 {assData?.companyName}</div>
       </footer>
 
       {/* Submit Confirmation Modal */}

@@ -145,7 +145,7 @@ export default function Home() {
                 {companyName || "[CONDUCTOR INSTITUTE]"}
               </h1>
               <p className="text-emerald-600 text-sm -mt-1">
-                Excellence in Assessment
+                Computer Based Test (CBT) System
               </p>
             </div>
           </div>
