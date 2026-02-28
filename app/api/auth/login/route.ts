@@ -66,7 +66,7 @@ export async function POST(req: Request) {
         });
 
         res.cookies.set('session_token', 'mock-token', {
-            httpOnly: true,
+            httpOnly: false,
             secure: process.env.NODE_ENV === 'production',
             path: '/',
             maxAge: 60 * 60 * 24, // 24 hours

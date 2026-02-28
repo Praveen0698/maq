@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
 
 type ResponseStatus =
   | "answered"
@@ -49,13 +50,13 @@ export default function MCQPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [cameraAllowed, setCameraAllowed] = useState<boolean | null>(null);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
-
+  const [examStarted, setExamStarted] = useState(false);
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const isCheck = localStorage.getItem("check");
-      if (isCheck !== "true") {
-        router.push("/");
-      }
+    const token = Cookies.get("session_token");
+    const role = Cookies.get("userRole");
+
+    if (!token || role !== "user") {
+      router.replace("/");
     }
   }, [router]);
 
@@ -78,12 +79,24 @@ export default function MCQPage() {
 
   const requestCameraAccess = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      if (!window.isSecureContext) {
+        alert("Camera requires HTTPS connection.");
+        return false;
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user" },
+        audio: false,
+      });
+
       setCameraStream(stream);
       setCameraAllowed(true);
+      return true;
     } catch (error) {
-      console.error("Camera access denied", error);
+      console.error(error);
+      alert("Please allow camera permission.");
       setCameraAllowed(false);
+      return false;
     }
   };
 
@@ -108,8 +121,7 @@ export default function MCQPage() {
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       event.preventDefault();
-      event.returnValue = ""; // Required for Chrome
-      handleSubmit();
+      event.returnValue = "";
     };
 
     window.addEventListener("beforeunload", handleBeforeUnload);
@@ -125,6 +137,7 @@ export default function MCQPage() {
 
       videoRef.current.onloadedmetadata = async () => {
         try {
+          videoRef?.current?.setAttribute("playsinline", "true");
           await videoRef.current?.play();
         } catch (err) {
           console.error("Video play error:", err);
@@ -200,7 +213,6 @@ export default function MCQPage() {
     };
 
     fetchAssignmentAndQuestions();
-    requestCameraAccess();
   }, [router]);
 
   useEffect(() => {
@@ -239,9 +251,11 @@ export default function MCQPage() {
 
   useEffect(() => {
     if (isTimeUp) {
+      Cookies.remove("session_token");
+      Cookies.remove("userRole");
+
       setTimeout(() => {
-        localStorage.removeItem("check");
-        router.push("/submitted");
+        router.replace("/submitted");
       }, 3000);
     }
   }, [isTimeUp, router]);
@@ -311,7 +325,8 @@ export default function MCQPage() {
       cameraStream.getTracks().forEach((track) => track.stop());
     }
 
-    localStorage.removeItem("check");
+    Cookies.remove("session_token");
+    Cookies.remove("userRole");
 
     router.replace("/submitted");
   };
@@ -320,23 +335,33 @@ export default function MCQPage() {
 
   if (loading) return <div className="p-6 text-center">Loading...</div>;
 
-  if (cameraAllowed === false) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-red-50 text-center p-6">
-        <div>
-          <h1 className="text-2xl font-bold text-red-600 mb-2">
-            Camera Access Required
-          </h1>
-          <p className="text-gray-700">
-            Please allow camera access to proceed with the exam.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-100 font-sans text-gray-800 flex flex-col">
+      {!examStarted && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl p-8 w-[90%] max-w-md text-center">
+            <h2 className="text-xl font-bold mb-4 text-gray-800">
+              Camera Permission Required
+            </h2>
+
+            <p className="text-sm text-gray-600 mb-6">
+              To continue this assessment, camera access is mandatory.
+            </p>
+
+            <button
+              onClick={async () => {
+                const allowed = await requestCameraAccess();
+                if (allowed) {
+                  setExamStarted(true);
+                }
+              }}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition"
+            >
+              Allow Camera & Start Exam
+            </button>
+          </div>
+        </div>
+      )}
       <header className="bg-white/70 backdrop-blur-md shadow-sm py-3 px-4 sm:px-6">
         <div className="mx-auto flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
           {/* LEFT SECTION */}

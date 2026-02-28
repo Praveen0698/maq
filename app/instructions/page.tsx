@@ -4,22 +4,19 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Head from "next/head";
 import axios from "axios";
+import Cookies from "js-cookie";
 
 export default function Instructions() {
   const [companyName, setCompanyName] = useState("");
   const [assData, setAssData] = useState<any>(null);
   const router = useRouter();
-  const [authorized, setAuthorized] = useState(true);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const isCheck = localStorage.getItem("check");
-      if (isCheck !== "true") {
-        setAuthorized(false);
-        router.push("/");
-      } else {
-        setAuthorized(true);
-      }
+    const token = Cookies.get("session_token");
+    const role = Cookies.get("userRole");
+console.log(token, role)
+    if (!token || role !== "user") {
+      router.replace("/");
     }
   }, [router]);
 
@@ -42,12 +39,8 @@ export default function Instructions() {
   }, []);
 
   const handleProceed = async () => {
-    router.push("/declaration");
+    router.replace("/declaration");
   };
-
-  if (!authorized) {
-    return <></>;
-  }
 
   return (
     <div className="min-h-screen overflow-x-hidden w-full bg-white text-black font-sans overflow-auto">

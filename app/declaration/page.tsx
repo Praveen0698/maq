@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Head from "next/head";
 import axios from "axios";
+import Cookies from "js-cookie";
 
 export default function Instructions() {
   const [companyName, setCompanyName] = useState("");
@@ -11,8 +12,10 @@ export default function Instructions() {
   const router = useRouter();
 
   useEffect(() => {
-    const isCheck = localStorage.getItem("check");
-    if (isCheck !== "true") {
+    const token = Cookies.get("session_token");
+    const role = Cookies.get("userRole");
+
+    if (!token || role !== "user") {
       router.replace("/");
     }
   }, [router]);
@@ -128,7 +131,7 @@ export default function Instructions() {
             <div className="flex justify-center mt-8">
               <button
                 onClick={handleProceed}
-                className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold text-base sm:text-lg px-8 sm:px-10 py-3 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full cursor-pointer sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold text-base sm:text-lg px-8 sm:px-10 py-3 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 I Accept & Start Test
               </button>

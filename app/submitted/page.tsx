@@ -9,27 +9,19 @@ const SubmittedPage = () => {
   const hasRedirected = useRef(false);
 
   useEffect(() => {
-    if (hasRedirected.current) return;
-
     const interval = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-
-          if (!hasRedirected.current) {
-            hasRedirected.current = true;
-            router.replace("/"); // 🔥 replace instead of push
-          }
-
-          return 0;
-        }
-
-        return prev - 1;
-      });
+      setTimeLeft((prev) => prev - 1);
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [router]);
+  }, []);
+
+  useEffect(() => {
+    if (timeLeft <= 0 && !hasRedirected.current) {
+      hasRedirected.current = true;
+      router.replace("/");
+    }
+  }, [timeLeft, router]);
 
   return (
     <motion.div

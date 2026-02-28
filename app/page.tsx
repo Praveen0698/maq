@@ -82,11 +82,10 @@ export default function Home() {
         });
 
         if (role === "admin") {
-          router.push("/admin");
+          router.replace("/admin");
         } else if (role === "user") {
           sessionStorage.setItem("user", JSON.stringify(userData));
-          router.push("/instructions");
-          localStorage.setItem("check", "true");
+          router.replace("/instructions");
         } else {
           setError("Invalid user role received. Please contact support.");
         }
