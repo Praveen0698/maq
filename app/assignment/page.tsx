@@ -532,7 +532,7 @@ export default function MCQPage() {
             </div>
             <button
               onClick={openSubmitModal}
-              className="w-full mt-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm sm:text-base"
+              className="w-full cursor-pointer mt-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm sm:text-base"
             >
               Submit
             </button>
@@ -556,13 +556,13 @@ export default function MCQPage() {
             <div className="flex justify-end gap-4">
               <button
                 onClick={closeSubmitModal}
-                className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                className="bg-gray-300 cursor-pointer hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSubmit}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                className="bg-blue-600 cursor-pointer hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
               >
                 {submitting ? (
                   <span className="animate-spin">Submitting...</span>

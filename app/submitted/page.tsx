@@ -1,21 +1,21 @@
-'use client'
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
+"use client";
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 
 const SubmittedPage = () => {
   const router = useRouter();
-  const [timeLeft, setTimeLeft] = useState(10);
+  const [timeLeft, setTimeLeft] = useState(5);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-        if (typeof window !== 'undefined') {
-            router.push('/');
-        }
-    }, 10000);
+      if (typeof window !== "undefined") {
+        router.push("/");
+      }
+    }, 5000);
 
     const interval = setInterval(() => {
-      setTimeLeft(prevTime => prevTime - 1);
+      setTimeLeft((prevTime) => prevTime - 1);
     }, 1000);
 
     return () => {
@@ -24,7 +24,7 @@ const SubmittedPage = () => {
     };
   }, [router]);
 
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return (
       <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center">
         <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
@@ -35,9 +35,7 @@ const SubmittedPage = () => {
             Thank you for completing the process. Your submission has been
             successfully recorded.
           </p>
-          <p className="text-gray-500 text-sm">
-            Redirecting...
-          </p>
+          <p className="text-gray-500 text-sm">Redirecting...</p>
         </div>
       </div>
     );
@@ -64,9 +62,9 @@ const SubmittedPage = () => {
           successfully submitted.
         </p>
         <motion.p
-           initial={{ opacity: 0 }}
-           animate={{ opacity: 1 }}
-           transition={{ delay: 0.5, duration: 0.5 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5, duration: 0.5 }}
           className="text-gray-500 text-sm"
         >
           You will be redirected to the home page in {timeLeft} seconds...

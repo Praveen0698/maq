@@ -185,11 +185,10 @@ export default function Instructions() {
             </button>
           </div>
         </div>
-
-        <footer className="text-center text-xs text-gray-600 py-4 mt-8 border-t">
-          © 2025 {companyName}
-        </footer>
       </div>
+      <footer className="bg-white border-t border-t-gray-200 shadow-lg py-4 px-4 sm:px-6 md:px-8 text-center text-xs text-gray-500">
+        © 2025 {companyName}
+      </footer>
     </div>
   );
 }

@@ -120,24 +120,22 @@ export default function Instructions() {
                 connectivity.
               </p>
             </div>
+
+            <div className="flex justify-center mt-8">
+              <button
+                onClick={handleProceed}
+                className="w-full cursor-pointer sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold text-lg px-10 py-3 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                I Accept & Start Test
+              </button>
+            </div>
           </div>
         </div>
       </main>
 
-      <footer className="bg-white border-t py-4 text-center text-xs text-gray-500">
+      <footer className="bg-white border-t border-t-gray-200 shadow-sm py-4 text-center text-xs text-gray-500">
         © 2025 {companyName || "MCQ Portal"} | All Rights Reserved
       </footer>
-
-      <div className="fixed bottom-0 left-0 w-full bg-white border-t shadow-lg py-4">
-        <div className="max-w-4xl mx-auto px-4 flex justify-center">
-          <button
-            onClick={handleProceed}
-            className="w-full cursor-pointer sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold text-lg px-10 py-3 rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            I Accept & Start Test
-          </button>
-        </div>
-      </div>
     </div>
   );
 }

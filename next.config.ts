@@ -1,10 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  // next.config.js
-  matcher: ['/declaration', '/instructions', '/assignment'],
-
+  reactStrictMode: true,
 };
 
 export default nextConfig;
