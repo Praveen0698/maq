@@ -187,7 +187,7 @@ export default function Instructions() {
         </div>
       </div>
       <footer className="bg-white border-t border-t-gray-200 shadow-lg py-4 px-4 sm:px-6 md:px-8 text-center text-xs text-gray-500">
-        © 2025 {companyName}
+        © 2026 {companyName}
       </footer>
     </div>
   );

@@ -337,11 +337,12 @@ export default function MCQPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 font-sans text-gray-800 flex flex-col">
-      <header className="bg-white/70 backdrop-blur-md shadow-sm py-4 px-6">
-        <div className="mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-4">
+      <header className="bg-white/70 backdrop-blur-md shadow-sm py-3 px-4 sm:px-6">
+        <div className="mx-auto flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+          {/* LEFT SECTION */}
+          <div className="flex items-center gap-3">
             {assData?.logo ? (
-              <div className="w-12 h-12 bg-white rounded-full shadow-md overflow-hidden flex items-center justify-center border">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-full shadow-md overflow-hidden flex items-center justify-center border">
                 <img
                   src={assData.logo}
                   alt="Logo"
@@ -349,43 +350,47 @@ export default function MCQPage() {
                 />
               </div>
             ) : (
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center shadow">
-                <span className="text-blue-700 font-bold text-xl">?</span>
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-full flex items-center justify-center shadow">
+                <span className="text-blue-700 font-bold text-lg sm:text-xl">
+                  ?
+                </span>
               </div>
             )}
 
-            <div>
-              <h1 className="text-xl font-bold text-blue-700">
+            <div className="leading-tight">
+              <h1 className="text-base sm:text-xl font-bold text-blue-700">
                 {assData?.companyName || "Online Examination Portal"}
               </h1>
-              <p className="text-sm text-gray-500">
+              <p className="text-xs sm:text-sm text-gray-500">
                 Computer Based Test (CBT) System
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="w-[60px] h-[60px] bg-black rounded-md overflow-hidden border border-white">
+          {/* RIGHT SECTION */}
+          <div className="flex items-center justify-between sm:justify-end gap-3">
+            {/* Camera */}
+            <div className="w-[50px] sm:w-[80px] aspect-[4/3] bg-black rounded-md overflow-hidden border border-white flex-shrink-0">
               <video
                 ref={videoRef}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover scale-x-[-1]"
                 autoPlay
                 muted
                 playsInline
               />
             </div>
-            <div className="text-sm md:text-base text-right pr-5">
-              <div>
-                Candidate Name:{" "}
-                <span className="font-semibold">
+
+            {/* Candidate + Timer */}
+            <div className="text-right">
+              <div className="text-xs sm:text-sm">
+                Candidate:
+                <span className="font-semibold ml-1">
                   {user?.name || "[Your Name]"}
                 </span>
               </div>
-              <div>
-                Remaining Time:{" "}
-                <span className="text-yellow-300 font-bold">
-                  {formatTime()}
-                </span>
+
+              <div className="text-sm sm:text-base font-bold text-red-600">
+                {formatTime()}
               </div>
             </div>
           </div>

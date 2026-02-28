@@ -241,7 +241,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="bg-white border-t h-[6vh] flex items-center justify-center py-2 text-xs text-gray-500">
-        <p>© 2025 {companyName}</p>
+        <p>© 2026 {companyName}</p>
       </footer>
     </div>
   );
