@@ -32,6 +32,18 @@ export default function AssignmentsPage() {
   const [allUsers, setAllUsers] = useState<UserOption[]>([]);
   const [questions, setQuestions] = useState<string[]>([]);
   const [allQuestions, setAllQuestions] = useState<QuestionOption[]>([]);
+  const [selectAllQuestions, setSelectAllQuestions] = useState(false);
+
+  const handleSelectAllQuestions = () => {
+    if (selectAllQuestions) {
+      setQuestions([]);
+      setSelectAllQuestions(false);
+    } else {
+      const allIds = allQuestions.map((q) => q.value);
+      setQuestions(allIds);
+      setSelectAllQuestions(true);
+    }
+  };
 
   useEffect(() => {
     axios.get("/api/admin/users").then((res) => {
@@ -39,7 +51,7 @@ export default function AssignmentsPage() {
         (user: { email: string }) => ({
           label: user.email,
           value: user.email,
-        })
+        }),
       );
       setAllUsers(userOptions);
     });
@@ -49,7 +61,7 @@ export default function AssignmentsPage() {
         (q: { _id: string; text: string }) => ({
           label: q.text,
           value: q._id,
-        })
+        }),
       );
       setAllQuestions(questionOptions);
     });
@@ -171,7 +183,7 @@ export default function AssignmentsPage() {
             type="datetime-local"
             value={startTime}
             onChange={(e) => setStartTime(e.target.value)}
-            className="w-fit p-2 border rounded"
+            className="w-fit p-2 border rounded bg-white text-black"
           />
         </div>
         <div>
@@ -243,18 +255,32 @@ export default function AssignmentsPage() {
         </div>
 
         <div>
-          <label htmlFor="questions" className="block font-semibold mb-2">
-            Add Questions
-          </label>
+          <div className="flex items-center justify-between mb-2">
+            <label htmlFor="questions" className="block font-semibold ">
+              Add Questions
+            </label>
+
+            <button
+              type="button"
+              onClick={handleSelectAllQuestions}
+              className="text-sm px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 text-black"
+            >
+              {selectAllQuestions ? "Unselect All" : "Select All"}
+            </button>
+          </div>
+
           <ClientSelect
             isMulti
             options={allQuestions}
             value={allQuestions.filter((question) =>
-              questions.includes(question.value)
+              questions.includes(question.value),
             )}
-            onChange={(selectedOptions: any) =>
-              setQuestions(selectedOptions?.map((option: any) => option.value))
-            }
+            onChange={(selectedOptions: any) => {
+              const selected =
+                selectedOptions?.map((option: any) => option.value) || [];
+              setQuestions(selected);
+              setSelectAllQuestions(selected.length === allQuestions.length);
+            }}
             className="w-full text-black"
             placeholder="Select Questions"
           />

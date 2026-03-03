@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import dynamic from "next/dynamic";
 
 const ClientSelect = dynamic(() => import("@/components/ReactSelect"), {
@@ -13,10 +13,8 @@ interface Question {
   text: string;
 }
 
-
 export default function AssessmentReviewPage() {
   const { id } = useParams();
-  const router = useRouter();
 
   const [assessment, setAssessment] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -24,8 +22,26 @@ export default function AssessmentReviewPage() {
   const [isPast, setIsPast] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
-  const [allUsers, setAllUsers] = useState([]);
-  const [allQuestions, setAllQuestions] = useState([]);
+  const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [allQuestions, setAllQuestions] = useState<Question[]>([]);
+  const [selectAllQuestions, setSelectAllQuestions] = useState(false);
+
+  const handleSelectAllQuestions = () => {
+    if (selectAllQuestions) {
+      setFormData((prev: any) => ({ ...prev, questions: [] }));
+      setSelectAllQuestions(false);
+    } else {
+      const allIds = allQuestions.map((q: any) => q._id);
+      setFormData((prev: any) => ({ ...prev, questions: allIds }));
+      setSelectAllQuestions(true);
+    }
+  };
+
+  useEffect(() => {
+    if (!formData.questions || !allQuestions.length) return;
+
+    setSelectAllQuestions(formData.questions.length === allQuestions.length);
+  }, [formData.questions, allQuestions]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -46,7 +62,7 @@ export default function AssessmentReviewPage() {
           .toISOString()
           .slice(0, 16),
         users: assignmentData.users.map((u: any) =>
-          typeof u === "string" ? u : u.email
+          typeof u === "string" ? u : u.email,
         ),
         questions: assignmentData.questionIds?.map((q: any) => q._id),
         companyName: assignmentData.companyName || "",
@@ -61,7 +77,7 @@ export default function AssessmentReviewPage() {
   }, [id]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev: any) => ({ ...prev, [name]: value }));
@@ -287,7 +303,7 @@ export default function AssessmentReviewPage() {
             onChange={(selected: any) =>
               handleSelectChange(
                 "users",
-                selected.map((s: any) => s.value)
+                selected.map((s: any) => s.value),
               )
             }
           />
@@ -303,35 +319,42 @@ export default function AssessmentReviewPage() {
       </div>
 
       <div>
-        <label className="font-semibold block">Questions:</label>
+        <div className="flex items-center justify-between mb-2">
+          <label className="font-semibold block">Questions:</label>
+
+          {isEditing && (
+            <button
+              type="button"
+              onClick={handleSelectAllQuestions}
+              className="text-sm px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 text-black"
+            >
+              {selectAllQuestions ? "Unselect All" : "Select All"}
+            </button>
+          )}
+        </div>
+
         {isEditing ? (
           <ClientSelect
             isMulti
             name="questions"
-            styles={{
-              option: (base: any, state: any) => ({
-                ...base,
-                backgroundColor: state.isFocused ? "#eee" : "#000",
-                color: "#000",
-                cursor: "pointer",
-              }),
-            }}
             value={formData.questions.map((id: string) => {
-              const q = allQuestions.find((q) => (q as Question)._id === id);
+              const q = allQuestions.find((q: Question) => q._id === id);
               return q
-                  ? { value: (q as Question)._id, label: (q as Question).text }
-                  : { value: id, label: id };
-          })}
+                ? { value: q._id, label: q.text }
+                : { value: id, label: id };
+            })}
             options={allQuestions.map((q: any) => ({
               value: q._id,
               label: q.text,
             }))}
-            onChange={(selected: any) =>
-              handleSelectChange(
-                "questions",
-                selected.map((s: any) => s.value)
-              )
-            }
+            onChange={(selected: any) => {
+              const selectedIds = selected?.map((s: any) => s.value) || [];
+
+              handleSelectChange("questions", selectedIds);
+
+              setSelectAllQuestions(selectedIds.length === allQuestions.length);
+            }}
+            className="text-black"
           />
         ) : (
           <ul className="list-disc pl-6">
