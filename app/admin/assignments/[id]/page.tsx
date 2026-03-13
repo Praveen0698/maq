@@ -13,6 +13,11 @@ interface Question {
   text: string;
 }
 
+function toLocalDateTimeString(date: Date): string {
+  const offset = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+}
+
 export default function AssessmentReviewPage() {
   const { id } = useParams();
 
@@ -58,9 +63,7 @@ export default function AssessmentReviewPage() {
       setAssessment(assignmentData);
       setFormData({
         ...assignmentData,
-        startTime: new Date(assignmentData.startTime)
-          .toISOString()
-          .slice(0, 16),
+        startTime: toLocalDateTimeString(new Date(assignmentData.startTime)), // ✅ fixed
         users: assignmentData.users.map((u: any) =>
           typeof u === "string" ? u : u.email,
         ),
@@ -362,34 +365,34 @@ export default function AssessmentReviewPage() {
       </div>
 
       {/* {isPast && ( */}
-        <div className="mt-4 space-x-4">
-          {!isEditing ? (
+      <div className="mt-4 space-x-4">
+        {!isEditing ? (
+          <button
+            onClick={() => setIsEditing(true)}
+            className="bg-blue-500 text-white px-4 py-2 rounded"
+          >
+            Edit Assignment
+          </button>
+        ) : (
+          <>
             <button
-              onClick={() => setIsEditing(true)}
-              className="bg-blue-500 text-white px-4 py-2 rounded"
+              onClick={handleSubmit}
+              className="bg-green-500 text-white px-4 py-2 rounded"
             >
-              Edit Assignment
+              Save Changes
             </button>
-          ) : (
-            <>
-              <button
-                onClick={handleSubmit}
-                className="bg-green-500 text-white px-4 py-2 rounded"
-              >
-                Save Changes
-              </button>
-              <button
-                onClick={() => {
-                  setFormData(assessment);
-                  setIsEditing(false);
-                }}
-                className="bg-gray-300 text-black px-4 py-2 rounded"
-              >
-                Cancel
-              </button>
-            </>
-          )}
-        </div>
+            <button
+              onClick={() => {
+                setFormData(assessment);
+                setIsEditing(false);
+              }}
+              className="bg-gray-300 text-black px-4 py-2 rounded"
+            >
+              Cancel
+            </button>
+          </>
+        )}
+      </div>
       {/* // )} */}
     </div>
   );
