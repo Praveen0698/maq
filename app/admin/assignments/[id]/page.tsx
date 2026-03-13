@@ -92,10 +92,15 @@ export default function AssessmentReviewPage() {
 
   const handleSubmit = async () => {
     try {
+      const payload = {
+        ...formData,
+        startTime: new Date(formData.startTime).toISOString(), // convert to UTC
+      };
+
       const res = await fetch(`/api/admin/assignments/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
@@ -212,7 +217,11 @@ export default function AssessmentReviewPage() {
             className="border px-2 py-1 rounded bg-white text-black"
           />
         ) : (
-          <p>{new Date(assessment.startTime).toLocaleString()}</p>
+          <p>
+            {new Date(assessment.startTime).toLocaleString("en-IN", {
+              timeZone: "Asia/Kolkata",
+            })}
+          </p>
         )}
       </div>
 
