@@ -15,25 +15,38 @@ export default function Home() {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [companyName, setCompanyName] = useState("");
   const [logo, setLogo] = useState("");
+  const [loadingPage, setLoadingPage] = useState(true);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const token = Cookies.get("session_token");
-      const userRole = Cookies.get("userRole");
+    const initialize = async () => {
+      try {
+        const token = Cookies.get("session_token");
+        const userRole = Cookies.get("userRole");
 
-      if (token && userRole) {
-        setCheckingAuth(true);
-        if (userRole === "admin") {
-          router.replace("/admin");
-        } else if (userRole === "user") {
-          router.replace("/instructions");
+        if (token && userRole) {
+          if (userRole === "admin") {
+            router.replace("/admin");
+            return;
+          } else if (userRole === "user") {
+            router.replace("/instructions");
+            return;
+          }
         }
-      } else {
-        setCheckingAuth(false);
+
+        const res = await axios.get("/api/admin/assignments/latest");
+
+        if (res.data) {
+          setCompanyName(res.data.companyName || "");
+          setLogo(res.data.logo || "");
+        }
+      } catch (err) {
+        setError("Failed to load application details. Please try again later.");
+      } finally {
+        setLoadingPage(false);
       }
     };
 
-    checkAuth();
+    initialize();
   }, [router]);
 
   useEffect(() => {
@@ -97,24 +110,24 @@ export default function Home() {
       if (err.response) {
         setError(
           err.response.data?.message ||
-            `Login failed: ${err.response.statusText}`
+            `Login failed: ${err.response.statusText}`,
         );
       } else if (err.request) {
         setError(
-          "Network error. Could not connect to the server. Please check your internet connection."
+          "Network error. Could not connect to the server. Please check your internet connection.",
         );
       } else {
         setError(
-          "An unexpected client-side error occurred during login. Please try again."
+          "An unexpected client-side error occurred during login. Please try again.",
         );
       }
     }
   };
 
-  if (checkingAuth) {
+  if (loadingPage) {
     return (
-      <div className="min-h-screen flex justify-center items-center bg-slate-50">
-        <p className="text-gray-600 italic">Checking authentication...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white">
+        <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
       </div>
     );
   }
