@@ -19,7 +19,7 @@ export default function AssessmentReviewPage() {
   const [assessment, setAssessment] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<any>({});
-  const [isPast, setIsPast] = useState(false);
+  // const [isPast, setIsPast] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
   const [allUsers, setAllUsers] = useState<any[]>([]);
@@ -68,7 +68,7 @@ export default function AssessmentReviewPage() {
         companyName: assignmentData.companyName || "",
       });
 
-      setIsPast(new Date(assignmentData.startTime) < new Date());
+      // setIsPast(new Date(assignmentData.startTime) < new Date());
       setAllUsers(usersData);
       setAllQuestions(questionsData);
     };
@@ -136,10 +136,6 @@ export default function AssessmentReviewPage() {
       console.log("Upload error:", err);
     }
   };
-
-  // UI rendering ...
-
-  console.log("assessment:", assessment);
 
   if (!assessment) return <div className="p-6">Loading assessment...</div>;
 
@@ -210,7 +206,7 @@ export default function AssessmentReviewPage() {
             name="startTime"
             value={formData.startTime}
             onChange={handleChange}
-            className="border px-2 py-1 rounded"
+            className="border px-2 py-1 rounded bg-white text-black"
           />
         ) : (
           <p>{new Date(assessment.startTime).toLocaleString()}</p>
@@ -365,7 +361,7 @@ export default function AssessmentReviewPage() {
         )}
       </div>
 
-      {isPast && (
+      {/* {isPast && ( */}
         <div className="mt-4 space-x-4">
           {!isEditing ? (
             <button
@@ -394,7 +390,7 @@ export default function AssessmentReviewPage() {
             </>
           )}
         </div>
-      )}
+      {/* // )} */}
     </div>
   );
 }
